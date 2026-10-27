@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>メガネプリント教在庫</title>
+<link rel="icon" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+<meta name="description" content="プリント作りやふせんボードなど、授業で使えるサイトの入口です。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Klee+One:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F6F9FB;
+    --grid:#DCE7EE;
+    --ink:#3A231C;
+    --sub:#6A5A52;
+    --card:#FFFFFF;
+    --line:#C8D5DE;
+    --hover:#F0F5F8;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#182027;
+      --grid:#232E37;
+      --ink:#E7EDF1;
+      --sub:#A2B0BB;
+      --card:#1F2930;
+      --line:#34424D;
+      --hover:#26323B;
+    }
+  }
+
+  /* 教科の色（明るい画面 / 暗い画面） */
+  .c-red   { --c:#C23B33; }
+  .c-blue  { --c:#2B66AE; }
+  .c-yellow{ --c:#A87F00; }
+  .c-green { --c:#2E8A57; }
+  .c-purple{ --c:#7A4FB0; }
+  @media (prefers-color-scheme: dark){
+    .c-red   { --c:#F27B71; }
+    .c-blue  { --c:#7FB0EE; }
+    .c-yellow{ --c:#F0C53A; }
+    .c-green { --c:#6CCB94; }
+    .c-purple{ --c:#B998E6; }
+  }
+
+  *{ box-sizing:border-box; }
+
+  /* メガネのマウスポインター（数字はクリックする位置＝メガネの真ん中） */
+  html{ cursor:url("cursor.png") 24 10, auto; }
+  a, button{ cursor:url("cursor-hover.png") 24 10, pointer; }
+  body{
+    margin:0;
+    color:var(--ink);
+    background-color:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size:24px 24px;
+    font-family:"BIZ UDPGothic", system-ui, sans-serif;
+    line-height:1.7;
+  }
+  .wrap{ max-width:760px; margin:0 auto; padding:56px 16px 72px; }
+
+  header h1{ margin:0; line-height:0; }
+  header h1 img{
+    display:block;
+    width:100%;
+    max-width:560px;
+    height:auto;
+  }
+  @media (prefers-color-scheme: dark){
+    header h1 img{
+      background:#FBF8F4;
+      border-radius:14px;
+      padding:8px 12px;
+    }
+  }
+  header p{ margin:.75rem 0 0; color:var(--sub); font-size:1.05rem; }
+
+  .list{ list-style:none; margin:44px 0 0; padding:0; display:grid; gap:16px; }
+
+  .item a{
+    display:grid;
+    grid-template-columns:auto 1fr auto;
+    align-items:center;
+    gap:20px;
+    padding:18px 20px;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-left:8px solid var(--c);
+    border-radius:6px;
+    color:inherit;
+    text-decoration:none;
+    transition:background-color .15s;
+  }
+  .item a:hover{ background:var(--hover); }
+  .item a:focus-visible{ outline:3px solid var(--c); outline-offset:3px; }
+
+  /* 漢字練習帳のマス */
+  .masu{
+    position:relative;
+    width:68px; height:68px;
+    border:2px solid var(--c);
+    display:grid; place-items:center;
+    font-family:"Klee One", serif;
+    font-weight:600;
+    font-size:2.2rem;
+    line-height:1;
+    color:var(--c);
+  }
+  .masu::before, .masu::after{
+    content:""; position:absolute; opacity:.45;
+  }
+  .masu::before{ left:50%; top:0; bottom:0; border-left:1px dashed var(--c); }
+  .masu::after { top:50%; left:0; right:0; border-top:1px dashed var(--c); }
+  .masu span{ position:relative; z-index:1; }
+
+  .text h2{ margin:0; font-size:1.25rem; font-weight:700; }
+  .text p{ margin:.2rem 0 0; color:var(--sub); font-size:.95rem; }
+
+  .open{
+    white-space:nowrap;
+    font-weight:700;
+    color:var(--c);
+    border:2px solid var(--c);
+    border-radius:999px;
+    padding:.35rem 1rem;
+  }
+
+  footer{ margin-top:48px; color:var(--sub); font-size:.85rem; }
+
+  @media (max-width:520px){
+    .wrap{ padding-top:40px; }
+    .item a{ grid-template-columns:auto 1fr; gap:14px; padding:14px 16px; }
+    .masu{ width:54px; height:54px; font-size:1.8rem; }
+    .open{ display:none; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .item a{ transition:none; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1><img src="logo.png" alt="メガネプリント教在庫" width="1200" height="400"></h1>
+      <p>プリント作りやふせんボードなど、授業で使えるサイトの入口です。</p>
+    </header>
+
+    <ul class="list" id="list"></ul>
+
+    <footer>使いたいものをえらんでください。</footer>
+  </div>
+
+<script>
+  /*
+    ★ サイトを増やすときは、下の SITES に { … } を1つ足すだけです。
+      ji    : マスに入れる1文字
+      name  : サイトの名前
+      desc  : ひとことせつめい
+      url   : サイトのアドレス
+      color : red / blue / yellow / green / purple のどれか
+  */
+  const SITES = [
+    {
+      ji: "国",
+      name: "国語プリント",
+      desc: "ようじ〜中学生向けの国語プリントを作って印刷できます。",
+      url: "https://iamochiai-collab.github.io/Kokugo-worksheet-generator/",
+      color: "red"
+    },
+    {
+      ji: "算",
+      name: "算数プリント",
+      desc: "算数・数学のプリントを作って印刷できます。",
+      url: "https://iamochiai-collab.github.io/Math-worksheet-generator/",
+      color: "blue"
+    },
+    {
+      ji: "付",
+      name: "ふせんボード",
+      desc: "班ごとにふせんを貼って話し合い、先生に提出できます。",
+      url: "https://iamochiai-collab.github.io/WHITE-BOARD/",
+      color: "yellow"
+    }
+  ];
+
+  const list = document.getElementById("list");
+  SITES.forEach(function (s) {
+    const li = document.createElement("li");
+    li.className = "item c-" + (s.color || "blue");
+
+    const a = document.createElement("a");
+    a.href = s.url;
+
+    const masu = document.createElement("div");
+    masu.className = "masu";
+    masu.setAttribute("aria-hidden", "true");
+    const ji = document.createElement("span");
+    ji.textContent = s.ji;
+    masu.appendChild(ji);
+
+    const text = document.createElement("div");
+    text.className = "text";
+    const h2 = document.createElement("h2");
+    h2.textContent = s.name;
+    const p = document.createElement("p");
+    p.textContent = s.desc;
+    text.appendChild(h2);
+    text.appendChild(p);
+
+    const open = document.createElement("span");
+    open.className = "open";
+    open.textContent = "ひらく";
+
+    a.appendChild(masu);
+    a.appendChild(text);
+    a.appendChild(open);
+    li.appendChild(a);
+    list.appendChild(li);
+  });
+</script>
+</body>
+</html>
