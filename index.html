@@ -199,36 +199,45 @@
     .open{ display:none; }
   }
   /* ===== メガネをかけてよろこぶ人たち（パソコンだけ） ===== */
+  body{ position:relative; }
   .people{ display:none; }
   @media (min-width:1100px) and (hover:hover) and (pointer:fine){
     .people{ display:block; }
   }
   .people{
+    position:absolute; top:0; left:0; right:0;
+    overflow:hidden;
+    pointer-events:none;
+    z-index:0;
     --side:calc((100vw - 760px) / 2);
     --w:clamp(110px, calc(var(--side) * .6), 180px);
   }
   .person{
-    position:fixed;
-    width:var(--w);
-    z-index:0;
+    position:absolute;
+    width:calc(var(--w) * var(--s, 1));
     pointer-events:none;
+    opacity:0;
+    transform-origin:50% 100%;
+  }
+  .person.left { left: calc(var(--side) / 2 - var(--w) * var(--s, 1) / 2 + var(--dx, 0px)); }
+  .person.right{ right:calc(var(--side) / 2 - var(--w) * var(--s, 1) / 2 + var(--dx, 0px)); }
+  .person.in{ animation:popin .7s cubic-bezier(.34,1.56,.64,1) forwards; }
+  @keyframes popin{
+    0%  { opacity:0; transform:translateY(40px) scale(.6); }
+    60% { opacity:1; }
+    100%{ opacity:1; transform:none; }
   }
   .person svg{ display:block; width:100%; height:auto; overflow:visible; }
   .person svg *{ pointer-events:visiblePainted; }
   .person svg{ cursor:url("cursor-hover.png") 24 10, pointer; }
   .person.handing svg{ cursor:none; }
 
-  .p-left{ left:calc(var(--side) / 2 - var(--w) / 2); bottom:0; }
-  .p-rb  { width:calc(var(--w) * .86); right:calc(var(--side) / 2 - var(--w) * .43); bottom:0; }
-  .p-rt  { width:calc(var(--w) * .8);  right:calc(var(--side) / 2 - var(--w) * .4);  top:8vh; }
-  @media (max-height:760px){ .p-rt{ display:none; } }
-
   .fig, .arm, .glasses, .spark{ transform-box:view-box; }
-  .fig{ transform-origin:80px 300px; }
+  .fig{ transform-origin:80px 240px; }
   .arm{ transition:transform .4s cubic-bezier(.34,1.56,.64,1); }
   .arm-l{ transform-origin:38px 150px; }
   .arm-r{ transform-origin:122px 150px; }
-  .glasses{ opacity:0; transform-origin:80px 84px; }
+  .glasses{ opacity:0; transform-origin:80px 85px; }
   .wear .glasses{ opacity:1; }
 
   .eyes-happy, .mouth-happy, .spark{ opacity:0; }
@@ -241,6 +250,7 @@
   .joy .arm-r{ transform:rotate(-145deg); }
   .joy .fig{ animation:hop .8s cubic-bezier(.3,.7,.4,1) .25s; }
   .joy .spark{ animation:spark 1s ease-out .3s; }
+  .spark{ transform-origin:80px 70px; }
 
   @keyframes hop{
     0%,100%{ transform:translateY(0); }
@@ -254,10 +264,10 @@
     70%{ opacity:1; transform:scale(1); }
     100%{ opacity:0; transform:scale(1); }
   }
-  .spark{ transform-origin:80px 70px; }
 
   @media (prefers-reduced-motion: reduce){
     .arm{ transition:none; }
+    .person.in{ animation:none; opacity:1; }
     .joy .fig, .joy .spark{ animation:none; }
     .joy .arm-l, .joy .arm-r{ transform:none; }
   }
@@ -391,19 +401,31 @@
     }
     main.appendChild(section);
   });
-  /* ===== メガネをかけてよろこぶ人たち ===== */
+  /* ===== メガネをかけてよろこぶ人たち =====
+     ★ キャラをふやすとき：CAST に { shirt, hair, hairColor } を1つ足す
+       hair は short / bob / tails / long / bun / cap / spiky のどれか
+  */
   (function () {
     const B = "#3A1E16", SKIN = "#FCE6D4", CHEEK = "#F5A898", SPARK = "#F6B73C";
     const HAIR = {
       short: 'M36 86 Q30 30 80 30 Q130 30 124 86 Q118 60 98 54 Q86 64 64 60 Q46 60 40 74 Z',
       bob:   'M34 108 Q24 28 80 28 Q136 28 126 108 Q118 108 117 98 Q120 64 100 56 Q80 66 56 60 Q42 70 43 98 Q42 108 34 108 Z',
-      tails: 'M37 84 Q32 30 80 30 Q128 30 123 84 Q116 58 80 56 Q50 58 37 84 Z'
+      tails: 'M37 84 Q32 30 80 30 Q128 30 123 84 Q116 58 80 56 Q50 58 37 84 Z',
+      long:  'M30 140 Q20 28 80 28 Q140 28 130 140 Q120 142 116 128 Q120 66 100 56 Q80 66 56 60 Q42 70 44 128 Q40 142 30 140 Z',
+      bun:   'M37 84 Q32 30 80 30 Q128 30 123 84 Q116 58 80 56 Q50 58 37 84 Z',
+      cap:   'M36 86 Q30 40 80 40 Q130 40 124 86 Q118 62 80 60 Q46 62 36 86 Z',
+      spiky: 'M36 84 L33 52 L47 44 L50 25 L65 35 L80 19 L95 35 L110 25 L113 44 L127 52 L124 84 Q116 60 80 58 Q44 60 36 84 Z'
     };
-    const PEOPLE = [
-      { cls: "p-left", shirt: "#8CC8EA", hair: "short", hairColor: "#4A2C20" },
-      { cls: "p-rt",   shirt: "#A8D98A", hair: "bob",   hairColor: "#6B3F2A", papers: true },
-      { cls: "p-rb",   shirt: "#F7C04A", hair: "tails", hairColor: "#3A2219" }
+    const CAST = [
+      { shirt: "#A8D98A", hair: "bob",   hairColor: "#6B3F2A" },
+      { shirt: "#8CC8EA", hair: "short", hairColor: "#4A2C20" },
+      { shirt: "#F7C04A", hair: "tails", hairColor: "#3A2219" },
+      { shirt: "#F4A6B8", hair: "long",  hairColor: "#5A3324" },
+      { shirt: "#F6A15A", hair: "spiky", hairColor: "#3A2219" },
+      { shirt: "#C5A8E8", hair: "bun",   hairColor: "#4A2C20" },
+      { shirt: "#7FD1C1", hair: "cap",   hairColor: "#4A2C20", cap: "#E2574C" }
     ];
+    const PAPERS = [["#F7C04A", "#A8D98A"], ["#8CC8EA", "#F4A6B8"], ["#A8D98A", "#F7C04A"], ["#C5A8E8", "#8CC8EA"]];
 
     function arm(side, shirt) {
       const d = side === "l" ? "M38 150 Q24 200 28 246" : "M122 150 Q136 200 132 246";
@@ -415,28 +437,21 @@
         '</g>';
     }
 
-    function svg(o) {
-      const torso = o.papers
-        ? "M30 236 V182 Q30 118 80 118 Q130 118 130 182 V236 Z"
-        : "M28 360 V182 Q28 118 80 118 Q132 118 132 182 V360 Z";
-      const tails = o.hair === "tails"
-        ? '<circle cx="31" cy="66" r="15" fill="' + o.hairColor + '" stroke="' + B + '" stroke-width="5"/>' +
-          '<circle cx="129" cy="66" r="15" fill="' + o.hairColor + '" stroke="' + B + '" stroke-width="5"/>'
+    function svg(o, pc) {
+      const st = '" stroke="' + B + '" stroke-width="5"';
+      let back = "";
+      if (o.hair === "tails") back = '<circle cx="31" cy="66" r="15" fill="' + o.hairColor + st + '/><circle cx="129" cy="66" r="15" fill="' + o.hairColor + st + '/>';
+      if (o.hair === "bun")   back = '<circle cx="80" cy="30" r="17" fill="' + o.hairColor + st + '/>';
+      const cap = o.cap
+        ? '<path d="M38 70 Q36 22 80 22 Q124 22 122 70 Z" fill="' + o.cap + st + ' stroke-linejoin="round"/>' +
+          '<path d="M76 70 H138 Q146 72 140 80 H76 Z" fill="' + o.cap + st + ' stroke-linejoin="round"/>'
         : "";
-      const papers = o.papers
-        ? '<g stroke="' + B + '" stroke-width="5" stroke-linejoin="round">' +
-          '<rect x="12" y="252" width="138" height="24" rx="6" fill="#F7C04A" transform="rotate(2 80 264)"/>' +
-          '<rect x="14" y="238" width="134" height="24" rx="6" fill="#A8D98A" transform="rotate(-2.5 80 250)"/>' +
-          '<rect x="8" y="226" width="144" height="24" rx="6" fill="#FFFDF8"/>' +
-          '<path d="M24 238 H86" stroke="#B9B2AA" stroke-width="4" stroke-linecap="round"/></g>'
-        : "";
-      return '<svg viewBox="0 0 160 ' + (o.papers ? 284 : 290) + '" xmlns="http://www.w3.org/2000/svg">' +
-        '<g class="fig">' +
-          tails +
-          '<path d="' + torso + '" fill="' + o.shirt + '" stroke="' + B + '" stroke-width="5" stroke-linejoin="round"/>' +
+      return '<svg viewBox="0 0 160 284" xmlns="http://www.w3.org/2000/svg">' +
+        '<g class="fig">' + back +
+          '<path d="M30 236 V182 Q30 118 80 118 Q130 118 130 182 V236 Z" fill="' + o.shirt + st + ' stroke-linejoin="round"/>' +
           arm("l", o.shirt) + arm("r", o.shirt) +
-          '<circle cx="80" cy="80" r="44" fill="' + SKIN + '" stroke="' + B + '" stroke-width="5"/>' +
-          '<path d="' + HAIR[o.hair] + '" fill="' + o.hairColor + '" stroke="' + B + '" stroke-width="5" stroke-linejoin="round"/>' +
+          '<circle cx="80" cy="80" r="44" fill="' + SKIN + st + '/>' +
+          '<path d="' + HAIR[o.hair] + '" fill="' + o.hairColor + st + ' stroke-linejoin="round"/>' + cap +
           '<circle class="cheek" cx="52" cy="99" r="7.5" fill="' + CHEEK + '"/>' +
           '<circle class="cheek" cx="108" cy="99" r="7.5" fill="' + CHEEK + '"/>' +
           '<g class="eyes-calm" fill="' + B + '"><circle cx="64" cy="85" r="4.5"/><circle cx="96" cy="85" r="4.5"/></g>' +
@@ -451,15 +466,25 @@
           '<g class="spark" stroke="' + SPARK + '" stroke-width="6" stroke-linecap="round">' +
             '<path d="M128 34 L136 20"/><path d="M136 50 L150 42"/><path d="M138 66 L154 64"/>' +
             '<path d="M32 34 L24 20"/><path d="M24 50 L10 42"/><path d="M22 66 L6 64"/></g>' +
-        '</g>' + papers + '</svg>';
+        '</g>' +
+        '<g stroke="' + B + '" stroke-width="5" stroke-linejoin="round">' +
+          '<rect x="12" y="252" width="138" height="24" rx="6" fill="' + pc[0] + '" transform="rotate(2 80 264)"/>' +
+          '<rect x="14" y="238" width="134" height="24" rx="6" fill="' + pc[1] + '" transform="rotate(-2.5 80 250)"/>' +
+          '<rect x="8" y="226" width="144" height="24" rx="6" fill="#FFFDF8"/>' +
+          '<path d="M24 238 H86" stroke="#B9B2AA" stroke-width="4" stroke-linecap="round"/></g>' +
+        '</svg>';
     }
 
     const box = document.getElementById("people");
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const wide = window.matchMedia("(min-width:1100px) and (hover:hover) and (pointer:fine)");
 
-    PEOPLE.forEach(function (o) {
-      const p = el("div", "person " + o.cls);
-      p.innerHTML = svg(o);
+    function makePerson(o, n, side, y, scale, dx) {
+      const p = el("div", "person " + side);
+      p.style.top = y + "px";
+      p.style.setProperty("--s", scale);
+      p.style.setProperty("--dx", dx + "px");
+      p.innerHTML = svg(o, PAPERS[n % PAPERS.length]);
       box.appendChild(p);
 
       const s = p.querySelector("svg");
@@ -468,7 +493,6 @@
 
       p.addEventListener("pointerover", function (e) {
         if (p.contains(e.relatedTarget)) return;   // 中で動いただけ
-
         if (!p.classList.contains("wear")) {
           // カーソルのメガネが、顔までとんでいく
           if (!reduce) {
@@ -481,7 +505,6 @@
           }
           p.classList.add("wear", "handing");
         }
-
         // よろこぶ
         p.classList.remove("joy");
         void p.offsetWidth;
@@ -489,12 +512,56 @@
         clearTimeout(timer);
         timer = setTimeout(function () { p.classList.remove("joy"); }, 1500);
       });
-
       p.addEventListener("pointerout", function (e) {
         if (p.contains(e.relatedTarget)) return;
         p.classList.remove("handing");
       });
-    });
+      return p;
+    }
+
+    // ページの長さに合わせて、左右にキャラをならべる（下にスクロールすると次の人が出てくる）
+    let built = false;
+    function build() {
+      if (built || !wide.matches) return;
+      built = true;
+      box.style.height = "0px";
+      const docH = document.documentElement.scrollHeight;
+      const vh = window.innerHeight;
+      const side = (window.innerWidth - 760) / 2;
+      const w = Math.max(110, Math.min(side * 0.6, 180));
+      box.style.height = docH + "px";
+
+      const next = { right: Math.round(vh * 0.08), left: Math.round(vh * 0.42) };
+      const gap = 80;
+      const SCALES = [0.82, 1, 0.9, 0.95, 0.85];
+      const JITTER = [0, 14, -10, 8, -14];
+      const people = [];
+      for (let n = 0; n < 40; n++) {
+        const sideName = next.left < next.right ? "left" : "right";
+        const scale = SCALES[n % SCALES.length];
+        const h = w * scale * 284 / 160;
+        const y = next[sideName];
+        if (y + h > docH - 8) {
+          next[sideName] = Infinity;
+          if (next.left === Infinity && next.right === Infinity) break;
+          continue;
+        }
+        people.push(makePerson(CAST[n % CAST.length], n, sideName, y, scale, JITTER[n % JITTER.length]));
+        next[sideName] = y + h + gap;
+      }
+
+      // 画面に入ったら、ひょっこり出てくる
+      const io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (en.isIntersecting) { en.target.classList.add("in"); io.unobserve(en.target); }
+        });
+      }, { threshold: 0.6 });
+      people.forEach(function (p) { io.observe(p); });
+    }
+
+    if (document.readyState === "complete") build();
+    else window.addEventListener("load", build);
+    wide.addEventListener("change", build);
   })();
 </script>
 </body>
