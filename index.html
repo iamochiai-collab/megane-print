@@ -210,7 +210,7 @@
     pointer-events:none;
     z-index:0;
     --side:calc((100vw - 760px) / 2);
-    --w:clamp(110px, calc(var(--side) * .6), 180px);
+    --w:clamp(84px, calc(var(--side) * .45), 135px);
   }
   .person{
     position:absolute;
@@ -528,7 +528,7 @@
       const docH = document.documentElement.scrollHeight;
       const vh = window.innerHeight;
       const side = (window.innerWidth - 760) / 2;
-      const w = Math.max(110, Math.min(side * 0.6, 180));
+      const w = Math.max(84, Math.min(side * 0.45, 135));
       box.style.height = docH + "px";
 
       const next = { right: Math.round(vh * 0.08), left: Math.round(vh * 0.42) };
