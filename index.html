@@ -72,6 +72,9 @@
     width:100%;
     max-width:560px;
     height:auto;
+    margin:0 auto;
+    /* 絵の中でロゴが少し右にあるので、そのぶん左へずらして画面のまん中にそろえる */
+    transform:translateX(-3.5%);
   }
   .logo-still{ display:none; }
   .logo.still .logo-motion{ display:none; }
@@ -84,7 +87,7 @@
     position:absolute; width:1px; height:1px; overflow:hidden;
     clip:rect(0 0 0 0); white-space:nowrap;
   }
-  header p{ margin:.75rem 0 0; color:var(--sub); font-size:1.05rem; }
+  header p{ margin:.75rem 0 0; color:var(--sub); font-size:1.05rem; text-align:center; }
 
   /* 教科の切りかえボタン */
   .jump{
