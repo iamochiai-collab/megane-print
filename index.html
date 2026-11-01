@@ -206,6 +206,55 @@
     .masu{ width:54px; height:54px; font-size:1.8rem; }
     .open{ display:none; }
   }
+  /* ===== サイトのプレビュー（パソコンだけ） ===== */
+  .preview{
+    position:fixed; z-index:50;
+    width:400px; height:252px;
+    border:2px solid var(--c, #3A1E16);
+    border-radius:12px;
+    overflow:hidden;
+    background:var(--card);
+    box-shadow:0 18px 40px rgba(58,35,28,.22);
+    opacity:0;
+    transform:translateY(10px) scale(.9);
+    transform-origin:85% 100%;
+    transition:opacity .18s ease, transform .4s cubic-bezier(.34,1.56,.64,1);
+    pointer-events:none;
+    visibility:hidden;
+  }
+  .preview.below{ transform-origin:85% 0%; transform:translateY(-10px) scale(.9); }
+  .preview.show{ opacity:1; transform:none; visibility:visible; }
+  .preview-bar{
+    height:24px;
+    display:flex; align-items:center; gap:6px;
+    padding:0 10px;
+    background:var(--c, #3A1E16);
+    color:#fff; font-size:.75rem; font-weight:700;
+    white-space:nowrap; overflow:hidden;
+  }
+  .preview-bar i{ width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,.75); flex:none; }
+  .preview-bar span{ margin-left:4px; overflow:hidden; text-overflow:ellipsis; }
+  .preview-body{ position:relative; height:calc(100% - 24px); overflow:hidden; background:#fff; }
+  .preview-body iframe{
+    position:absolute; top:0; left:0;
+    width:1280px; height:730px;
+    border:0;
+    transform:scale(.3125);
+    transform-origin:0 0;
+    visibility:hidden;
+  }
+  .preview-body iframe.on{ visibility:visible; }
+  .preview-loading{
+    position:absolute; inset:0;
+    display:grid; place-items:center;
+    color:var(--c); font-weight:700;
+    background:var(--card);
+  }
+  .preview.loaded .preview-loading{ display:none; }
+  @media (prefers-reduced-motion: reduce){
+    .preview, .preview.below{ transition:opacity .1s; transform:none; }
+  }
+
   /* ===== メガネをかけてよろこぶ人たち（パソコンだけ） ===== */
   body{ position:relative; }
   .people{ display:none; }
@@ -426,6 +475,75 @@
     }
     main.appendChild(section);
   });
+  /* ===== カードにマウスを乗せると、サイトのプレビューが出る（パソコンだけ） ===== */
+  (function () {
+    const ok = window.matchMedia("(min-width:900px) and (hover:hover) and (pointer:fine)");
+    const pv = el("div", "preview");
+    pv.setAttribute("aria-hidden", "true");
+    pv.innerHTML = '<div class="preview-bar"><i></i><i></i><i></i><span></span></div>' +
+                   '<div class="preview-body"><div class="preview-loading">よみこみ中…</div></div>';
+    document.body.appendChild(pv);
+    const title = pv.querySelector(".preview-bar span");
+    const body = pv.querySelector(".preview-body");
+    const frames = {};          // 一度よみこんだサイトは、とっておく
+    let showT = 0, current = null;
+
+    function place(a) {
+      const r = a.getBoundingClientRect();
+      const W = pv.offsetWidth, H = pv.offsetHeight, m = 12;
+      let x = Math.min(r.right - W, window.innerWidth - W - 8);
+      x = Math.max(8, x);
+      let y = r.top - H - m, below = false;
+      if (y < 8) { y = r.bottom + m; below = true; }
+      pv.style.left = x + "px";
+      pv.style.top = y + "px";
+      pv.classList.toggle("below", below);
+    }
+
+    function open(a) {
+      const url = a.href;
+      current = a;
+      pv.style.setProperty("--c", getComputedStyle(a).getPropertyValue("--c"));
+      title.textContent = a.querySelector("h3").textContent;
+      Object.keys(frames).forEach(function (k) { frames[k].classList.remove("on"); });
+      let f = frames[url];
+      if (!f) {
+        f = document.createElement("iframe");
+        f.src = url;
+        f.loading = "eager";
+        f.tabIndex = -1;
+        f.setAttribute("title", "プレビュー");
+        f.addEventListener("load", function () {
+          f.dataset.loaded = "1";
+          if (current && current.href === url) pv.classList.add("loaded");
+        });
+        body.appendChild(f);
+        frames[url] = f;
+      }
+      f.classList.add("on");
+      pv.classList.toggle("loaded", f.dataset.loaded === "1");
+      place(a);
+      pv.classList.add("show");
+    }
+
+    function close() {
+      clearTimeout(showT);
+      current = null;
+      pv.classList.remove("show");
+    }
+
+    document.querySelectorAll(".item a").forEach(function (a) {
+      a.addEventListener("pointerenter", function () {
+        if (!ok.matches) return;
+        clearTimeout(showT);
+        showT = setTimeout(function () { open(a); }, 250);   // さっと通りすぎたときは出さない
+      });
+      a.addEventListener("pointerleave", close);
+      a.addEventListener("click", close);
+    });
+    window.addEventListener("scroll", function () { if (current) place(current); }, { passive: true });
+  })();
+
   /* ===== ロゴの動き（1回だけ流れて、最後の絵で止まる） =====
      logo-motion.mp4 は、上半分が絵・下半分が「すける度合い」。
      キャンバスで合わせて、背景がすけて見えるようにする */
