@@ -4,8 +4,28 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>メガネプリント教材庫</title>
-<link rel="icon" href="icon.png?v=2">
-<link rel="apple-touch-icon" href="icon.png?v=2">
+<link rel="icon" href="icon.png?v=2" id="icon">
+<link rel="apple-touch-icon" href="icon.png?v=2" id="touch-icon">
+<script>
+  /*
+    ★ 時期ごとのアイコン
+      months : その絵にする月（1〜12）
+      icon   : icons フォルダの中の絵（180×180）
+    季節をふやすときは、SEASON_ICONS に { months: [3,4,5], icon: "icons/icon-spring.png" } のように足す。
+    どれにも当てはまらない月は、ふつうの icon.png になる。
+  */
+  (function () {
+    const SEASON_ICONS = [
+      { months: [12, 1, 2], icon: "icons/icon-winter.png?v=1" }
+    ];
+    const m = new Date().getMonth() + 1;
+    const hit = SEASON_ICONS.find(function (s) { return s.months.indexOf(m) !== -1; });
+    if (hit) {
+      document.getElementById("icon").href = hit.icon;
+      document.getElementById("touch-icon").href = hit.icon;
+    }
+  })();
+</script>
 <meta name="description" content="プリント作りやふせんボードなど、授業で使えるサイトの入口です。">
 <!-- LINE や SNS で共有したときに出る画像と文 -->
 <meta property="og:type" content="website">
