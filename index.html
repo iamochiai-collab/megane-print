@@ -84,8 +84,8 @@
     max-width:560px;
     height:auto;
     margin:0 auto;
-    /* 絵の中でロゴが少し右にあるので、そのぶん左へずらして画面のまん中にそろえる */
-    transform:translateX(-3.5%);
+    /* 絵の中でロゴがほんの少し右にあるので、そのぶん左へずらして画面のまん中にそろえる */
+    transform:translateX(-0.6%);
   }
   .logo-still{ display:none; }
   .logo.still .logo-motion{ display:none; }
@@ -353,9 +353,9 @@
     <header>
       <h1 class="logo" id="logo">
         <span class="sr">メガネプリント教材庫</span>
-        <canvas class="logo-motion" width="1200" height="410" aria-hidden="true"></canvas>
-        <img class="logo-still" src="logo.png?v=4" alt="" width="1200" height="410">
-        <video class="logo-src" src="logo-motion.mp4?v=2" muted playsinline preload="auto" aria-hidden="true"></video>
+        <canvas class="logo-motion" width="1200" height="540" aria-hidden="true"></canvas>
+        <img class="logo-still" alt="" width="1200" height="540">
+        <video class="logo-src" muted playsinline preload="auto" aria-hidden="true"></video>
       </h1>
       <p>プリント作りやふせんボードなど、授業で使えるサイトの入口です。</p>
     </header>
@@ -580,12 +580,27 @@
   })();
 
   /* ===== ロゴの動き（1回だけ流れて、最後の絵で止まる） =====
-     logo-motion.mp4 は、上半分が絵・下半分が「すける度合い」。
+     seasons/logo-○○.mp4 は、上半分が絵・下半分が「すける度合い」。
      キャンバスで合わせて、背景がすけて見えるようにする */
   (function () {
     const logo = document.getElementById("logo");
     const v = logo.querySelector("video");
     const cv = logo.querySelector("canvas");
+    /*
+      ★ 季節ごとのロゴ（seasons フォルダの中）
+        months : その季節にする月（1〜12）
+    */
+    const SEASONS = [
+      { name: "spring", months: [3, 4, 5] },
+      { name: "summer", months: [6, 7, 8] },
+      { name: "autumn", months: [9, 10, 11] },
+      { name: "winter", months: [12, 1, 2] }
+    ];
+    const month = new Date().getMonth() + 1;
+    const season = (SEASONS.find(function (x) { return x.months.indexOf(month) !== -1; }) || SEASONS[0]).name;
+    logo.querySelector(".logo-still").src = "seasons/logo-" + season + ".png?v=1";
+    v.src = "seasons/logo-" + season + ".mp4?v=1";
+
     const W = cv.width, H = cv.height;
     const ctx = cv.getContext("2d");
     const work = document.createElement("canvas");
